@@ -64,14 +64,22 @@ def xoa_sach(id_chon):
     st.session_state.df_tam = load_sach()
 
 
+COT_DUOC_TRONG = {"thuong_hieu", "tinh_trang"}
+
 def phuc_hoi_vao_mysql(df_khoiphuc):
     conn = ket_noi_mysql()
     cot = ["id", "ten_sach", "thuong_hieu", "tinh_trang", "gia_ban", "gia_goc", "link", "nguon"]
-    # chuyển csv thành giá trị mà MySQL đọc được
+
+    def gia_tri_o(ten_cot, v):
+        if pd.isna(v):
+            return None if ten_cot in COT_DUOC_TRONG else ""
+        return v
+
     gia_tri = [
-        tuple(None if pd.isna(row[c]) else row[c] for c in cot)
+        tuple(gia_tri_o(c, row[c]) for c in cot)
         for _, row in df_khoiphuc.iterrows()
     ]
+
     with conn.cursor() as cur:
         cur.execute("DELETE FROM books")
         cur.executemany(
